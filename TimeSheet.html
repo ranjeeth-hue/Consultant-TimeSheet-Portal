@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Timesheet Login</title>
+<style>
+  body{font-family:Arial;background:#e7f1ff;margin:0;padding:0;text-align:center;}
+  .top-header{background:#FE7A27;padding:20px;color:white;font-size:26px;}
+  .login-box{width:350px;margin:60px auto;background:white;padding:25px;border-radius:15px;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
+  label{display:block;text-align:left;margin-top:10px;font-weight:bold;}
+  input{width:100%;padding:10px;border-radius:8px;border:1px solid #bbb;margin-top:5px;}
+  button{width:100%;padding:12px;margin-top:20px;background:#005ad5;color:white;border:none;border-radius:8px;cursor:pointer;font-size:18px;}
+  .dash-box{width:420px;margin:70px auto;display:none;}
+  .dash-btn{width:100%;padding:18px;margin-top:14px;background:#0066ff;color:white;border:none;border-radius:12px;font-size:20px;cursor:pointer;}
+  .err{color:red;font-weight:bold;margin-top:10px;}
+</style>
+</head>
+<body>
+  <div class="top-header">Tek Artisans, LLC</div>
+
+  <div id="loginBox" class="login-box">
+    <h2>Employee Login</h2>
+    <label>Username</label><input id="username" type="text">
+    <label>Password</label><input id="password" type="password">
+    <button id="loginBtn">Login</button>
+    <div id="error" class="err"></div>
+  </div>
+
+  <div id="dashboardBox" class="dash-box">
+    <h2>Welcome <span id="userTitle"></span></h2>
+    <button class="dash-btn" onclick="goToEntries()">TimeSheet Entries</button>
+    <button class="dash-btn" onclick="goToStatus()">TimeSheet Status</button>
+    <button class="dash-btn" onclick="goToApproval()">Approval History</button>
+  </div>
+
+<script>
+
+  // <-- REPLACE with your latest deployment URL (must be /exec)
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbznh5RwZLzGLY1mt5cspZJgRstC1ZDRoSnNPxIFjuCsjSEum61UqNDJP8zVQswSzM6h/exec";
+
+ document.addEventListener("DOMContentLoaded", function() {
+       // Your code here will only run once the DOM is ready
+ document.getElementById("loginBtn").addEventListener("click", Login);
+
+  function Login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const err = document.getElementById("error");
+    err.innerText = "";
+ 
+
+    if (!username || !password) { err.innerText = "Please enter username and password."; return; }
+
+
+
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ action: "Login", username: username, password: password })
+    })
+    .then(r => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(res => {
+      if (res && res.success) {
+        sessionStorage.setItem("ts_username", username);
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("dashboardBox").style.display = "block";
+        document.getElementById("userTitle").innerText = username;
+      } else {
+        err.innerText = res && res.message ? res.message : "Invalid login";
+      }
+})
+    .catch(e => {
+      console.error("FETCH-ERROR:", e);
+      err.innerText = "Network error";
+    });
+  }
+
+
+
+});
+  function goToEntries(){ window.location.href = "TimeSheet_Entries.html"; }
+  function goToStatus(){ window.location.href = "TimeSheet_Status.html"; }
+  function goToApproval(){ window.location.href = "Approval_History.html"; }
+
+ 
+
+
+
+</script>
+</body>
+</html>
+

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Dashboard</title>
+  <base target="_top">
+  <style>
+    body{font-family:Arial;background:#eef2f3;margin:0;padding:0;display:flex;align-items:center;justify-content:center;height:100vh;}
+    .wrap{text-align:center;}
+    h1{color:#0b57b7;margin-bottom:8px;}
+    .sub{color:#555;margin-bottom:20px;}
+    .user{margin-bottom:18px;font-weight:700;color:#083f84;}
+    .menu{display:flex;flex-direction:column;gap:16px;align-items:center;}
+    .menu button{width:300px;padding:14px;font-size:16px;border-radius:12px;border:none;cursor:pointer;background:#0b57b7;color:#fff;font-weight:700;}
+    .menu button:hover{background:#083f84;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Dashboard</h1>
+    <div class="sub">Timesheet Portal</div>
+    <div id="userLabel" class="user">Loading...</div>
+    <div class="menu">
+      <button onclick="goEntries()">TimeSheet Entries</button>
+      <button onclick="goStatus()">TimeSheet Status</button>
+      <button onclick="goApproval()">Approval History</button>
+    </div>
+  </div>
+
+<script>
+  const u = localStorage.getItem("ts_username");
+  if(!u){ alert("Please login"); window.location.href="Timesheet_Login.html"; }
+  document.getElementById("userLabel").innerText = u;
+
+  function goEntries(){ window.location.href="TimeSheet_Entries.html"; }
+  function goStatus(){ window.location.href="TimeSheet_Status.html"; }
+  function goApproval(){ window.location.href="Approval_History.html"; }
+</script>
+</body>
+</html>
