@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>TimeSheet Status</title>
+  <base target="_top">
+  <style>
+    body{font-family:Arial;background:#eef2f3;margin:0;padding:28px;}
+    .wrap{width:900px;margin:0 auto;}
+    h2{color:#0b57b7;margin-bottom:6px;}
+    .user{color:#0b57b7;font-weight:700;margin-bottom:12px;}
+    .card{background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,0.06);}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;}
+    .tag{padding:6px 10px;border-radius:8px;color:#fff;font-weight:700;}
+    .approved{background:green;} .rejected{background:red;} .pending{background:orange;color:#000;}
+    .back{margin-top:12px;padding:10px 14px;background:#0b57b7;color:#fff;border:none;border-radius:8px;cursor:pointer;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>TimeSheet Status</h2>
+    <div id="userLine" class="user"></div>
+    <div class="card">
+      <table id="tbl">
+        <thead><tr><th>Date</th><th>Project</th><th>Total Hours</th><th>Status</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <button class="back" onclick="back()">Back to Dashboard</button>
+  </div>
+
+<script>
+  const WEB_APP = "https://script.google.com/macros/s/AKfycbyScrDWFhDbDS_ZUakPfRgsz6erSkcwMw2dyNXLxvFHMtq-zvfDGJHAhqkvOU2u9p01/exec";
+  const username = localStorage.getItem("ts_username");
+  if(!username){ alert("Please login"); window.location.href="Timesheet_Login.html"; }
+  document.getElementById("userLine").innerText = "User: " + username;
+
+  function load(){
+    fetch(WEB_APP, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ type:"fetchStatus", username: username })
+    })
+    .then(r=>r.json())
+    .then(arr=>{
+      const tbody = document.getElementById("tbody");
+      tbody.innerHTML = "";
+      if(!arr || arr.length===0){
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;color:#777;padding:20px;'>No entries found</td></tr>";
+        return;
+      }
+      arr.forEach(r=>{
+        const status = (r.status || "Pending");
+        const cls = status.toLowerCase()==="approved" ? "approved" : status.toLowerCase()==="rejected" ? "rejected" : "pending";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${r.date}</td><td>${r.project}</td><td>${r.totalHours}</td><td><span class="tag ${cls}">${status}</span></td>`;
+        tbody.appendChild(tr);
+      });
+    })
+    .catch(e=>{ console.error(e); alert("Network error — check Web App"); });
+  }
+
+  function back(){ window.location.href = "Dashboard.html"; }
+  window.onload = load;
+</script>
+</body>
+</html>

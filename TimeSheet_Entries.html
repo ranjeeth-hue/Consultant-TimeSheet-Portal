@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>TimeSheet Entry</title>
+  <base target="_top">
+  <style>
+    body{font-family:Arial;background:#f4f8fb;margin:0;padding:40px;display:flex;justify-content:center;}
+    .card{width:480px;background:#fff;padding:22px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.06);}
+    h2{color:#0b57b7;margin:0 0 12px;text-align:center;}
+    .row{margin:10px 0;}
+    label{display:block;font-weight:600;color:#333;margin-bottom:6px;}
+    input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #d6dde6;box-sizing:border-box;}
+    .small{width:48%;display:inline-block;}
+    .space{width:4%;display:inline-block;}
+    .submit{width:100%;padding:12px;margin-top:14px;background:#0b57b7;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;}
+    .submit:hover{background:#083f84;}
+    .note{color:#2b6b9a;font-weight:600;text-align:center;margin-bottom:8px;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Weekly TimeSheet Entry</h2>
+    <div class="note" id="welcomeUser">Welcome</div>
+
+    <div class="row">
+      <label for="tsDate">Date</label>
+      <input id="tsDate" type="date">
+    </div>
+
+    <div class="row">
+      <label for="project">Project Name</label>
+      <select id="project">
+        <option value="">-- Select Project --</option>
+        <option>CRM Project</option>
+        <option>Mobile App</option>
+        <option>Website Development</option>
+        <option>Internal Tool</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div class="small"><label>In Time</label><input id="inTime" type="time"></div>
+      <div class="space"></div>
+      <div class="small"><label>Out Time</label><input id="outTime" type="time"></div>
+    </div>
+
+    <div class="row"><label>Break (minutes)</label><input id="breakMins" type="number" placeholder="e.g. 60"></div>
+    <div class="row"><label>Total Hours</label><input id="totalHours" readonly style="background:#f1f6fb;"></div>
+
+    <button class="submit" onclick="submitTimesheet()">Submit Entry</button>
+    <div id="statusMsg" style="text-align:center;margin-top:12px;color:green;"></div>
+  </div>
+
+<script>
+  const WEB_APP = "https://script.google.com/macros/s/AKfycbyScrDWFhDbDS_ZUakPfRgsz6erSkcwMw2dyNXLxvFHMtq-zvfDGJHAhqkvOU2u9p01/exec";
+  const username = localStorage.getItem("ts_username");
+  if(!username){ alert("Please login"); window.location.href="Timesheet_Login.html"; }
+  document.getElementById("welcomeUser").innerText = "User: " + username;
+
+  document.getElementById("inTime").addEventListener("change",calc);
+  document.getElementById("outTime").addEventListener("change",calc);
+  document.getElementById("breakMins").addEventListener("input",calc);
+
+  function calc(){
+    const inT = document.getElementById("inTime").value;
+    const outT = document.getElementById("outTime").value;
+    const b = Number(document.getElementById("breakMins").value) || 0;
+    if(!inT || !outT){ document.getElementById("totalHours").value=""; return; }
+    const s = new Date("2000-01-01 "+inT);
+    const e = new Date("2000-01-01 "+outT);
+    let diff = (e - s)/(1000*60); // minutes
+    if(diff < 0){ document.getElementById("totalHours").value=""; return; }
+    diff = diff - b;
+    document.getElementById("totalHours").value = (diff/60).toFixed(2);
+  }
+
+  function submitTimesheet(){
+    const payload = {
+      type: "timesheet",
+      username: username,
+      date: document.getElementById("tsDate").value,
+      project: document.getElementById("project").value,
+      inTime: document.getElementById("inTime").value,
+      outTime: document.getElementById("outTime").value,
+      breakTime: document.getElementById("breakMins").value,
+      totalHours: document.getElementById("totalHours").value
+    };
+    if(!payload.date || !payload.project || !payload.inTime || !payload.outTime || !payload.totalHours){
+      alert("Please fill all fields and make sure total hours is calculated."); return;
+    }
+
+    fetch(WEB_APP, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    })
+    .then(r=>r.text())
+    .then(txt=>{
+      if(txt==="SUCCESS"){
+        document.getElementById("statusMsg").innerText="Saved successfully!";
+        // clear
+        document.getElementById("tsDate").value="";
+        document.getElementById("project").value="";
+        document.getElementById("inTime").value="";
+        document.getElementById("outTime").value="";
+        document.getElementById("breakMins").value="";
+        document.getElementById("totalHours").value="";
+      } else {
+        alert("Server returned: " + txt);
+      }
+    })
+    .catch(e=>{ console.error(e); alert("Network error — check Web App deployment"); });
+  }
+</script>
+</body>
+</html>
